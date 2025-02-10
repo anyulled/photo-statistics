@@ -1,0 +1,46 @@
+name: Release on PR Merge
+
+on:
+  pull_request:
+    types:
+      - closed  # Triggers when a PR is closed
+
+jobs:
+  create-release:
+    if: github.event.pull_request.merged == true  # Ensure it's a merged PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Get Version from Cargo.toml
+        id: get_version
+        run: echo "VERSION=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[0].version')" >> $GITHUB_ENV
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
+          body: |
+            **Changelog:**
+            - Automatically generated release on PR merge.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Rust Project
+        run: cargo build --release
+
+      - name: Upload Binary to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/release/<your_binary_name>
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
