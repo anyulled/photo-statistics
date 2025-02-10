@@ -2,9 +2,7 @@ use rusqlite::Connection;
 use std::collections::HashMap;
 use std::println;
 
-pub fn generate_statistics() {
-    let conn = Connection::open("photo_stats_cache.db").expect("Failed to open database");
-
+pub fn generate_statistics(connection: &Connection) {
     let mut stats = HashMap::new();
 
     let queries = vec![
@@ -29,7 +27,7 @@ pub fn generate_statistics() {
     ];
 
     for (title, query) in queries {
-        let mut stmt = conn.prepare(query).unwrap();
+        let mut stmt = connection.prepare(query).unwrap();
         let results: HashMap<String, i32> = stmt
             .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get(1)?)))
             .unwrap()
@@ -106,7 +104,7 @@ mod tests {
     fn test_empty_statistics() {
         let conn = setup_test_db();
         create_tables_if_needed(&conn).unwrap();
-        generate_statistics();
+        generate_statistics(&conn);
     }
 
 }

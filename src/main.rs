@@ -22,9 +22,9 @@ fn main() {
 
     println!("📂 Processing directory: {}", directory);
 
-    let conn = Connection::open(DB_FILE);
+    let conn = Connection::open(DB_FILE).expect("Failed to open database");
 
-    create_tables_if_needed(&conn.unwrap()).expect("Failed to create database tables.");
+    create_tables_if_needed(&conn).expect("Failed to create database tables.");
 
     println!("🔍 Scanning directory...");
     let files = scan_directory(&directory);
@@ -40,7 +40,7 @@ fn main() {
     process_files_in_parallel(files);
 
     println!("📊 Generating statistics...");
-    generate_statistics();
+    generate_statistics(&conn);
 
     println!("✅ Completed in {:.2?}", start_time.elapsed());
 }
