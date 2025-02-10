@@ -136,4 +136,15 @@ mod tests {
             .unwrap();
         assert_eq!(result, "N/A"); // Should be "N/A" instead of empty
     }
+
+    #[test]
+    fn test_db_error_handling() {
+        let conn = Connection::open_in_memory().unwrap();
+        let broken_metadata = json!({ "InvalidColumn": "Test" });
+
+        let result = insert_metadata(&conn, "broken.jpg", 1234567890.0, &broken_metadata);
+
+        assert!(result.is_err(), "Expected error due to invalid column.");
+    }
+
 }
