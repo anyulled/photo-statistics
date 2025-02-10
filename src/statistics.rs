@@ -104,7 +104,8 @@ mod tests {
 
     #[test]
     fn test_empty_statistics() {
-        setup_test_db();
+        let conn = setup_test_db();
+        create_tables_if_needed(&conn).unwrap();
         generate_statistics();
     }
 
