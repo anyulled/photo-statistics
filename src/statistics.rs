@@ -47,3 +47,57 @@ pub fn generate_statistics() {
         println!();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    
+    use rusqlite::Connection;
+    use serde_json::json;
+    use std::collections::HashMap;
+    use crate::database::{create_tables_if_needed, insert_metadata};
+
+    fn setup_test_db() -> Connection {
+        let conn = Connection::open_in_memory().unwrap();
+        create_tables_if_needed(&conn).unwrap();
+        conn
+    }
+
+    #[test]
+    fn test_photo_count_by_year() {
+        let conn = setup_test_db();
+
+        let metadata_2021 = json!({ "DateTimeOriginal": "2021:05:10 14:30:00" });
+        let metadata_2022 = json!({ "DateTimeOriginal": "2022:07:22 10:15:00" });
+
+        insert_metadata(&conn, "photo1.jpg", 1234567890.0, &metadata_2021).unwrap();
+        insert_metadata(&conn, "photo2.jpg", 1234567890.0, &metadata_2022).unwrap();
+        insert_metadata(&conn, "photo3.jpg", 1234567890.0, &metadata_2022).unwrap();
+
+        let mut stmt = conn.prepare("SELECT strftime('%Y', DateTimeOriginal), COUNT(*) FROM metadata GROUP BY strftime('%Y', DateTimeOriginal)").unwrap();
+        let counts: HashMap<String, i32> = stmt
+            .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get(1)?)))
+            .unwrap()
+            .filter_map(Result::ok)
+            .collect();
+
+        assert_eq!(counts.get("2021"), Some(&1));
+        assert_eq!(counts.get("2022"), Some(&2));
+    }
+
+    #[test]
+    fn test_handle_null_dates() {
+        let conn = setup_test_db();
+
+        let metadata_no_date = json!({});
+        insert_metadata(&conn, "photo1.jpg", 1234567890.0, &metadata_no_date).unwrap();
+
+        let mut stmt = conn.prepare("SELECT COALESCE(strftime('%Y', DateTimeOriginal), 'N/A'), COUNT(*) FROM metadata GROUP BY strftime('%Y', DateTimeOriginal)").unwrap();
+        let counts: HashMap<String, i32> = stmt
+            .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get(1)?)))
+            .unwrap()
+            .filter_map(Result::ok)
+            .collect();
+
+        assert_eq!(counts.get("N/A"), Some(&1)); // ✅ Should default to "N/A"
+    }
+}

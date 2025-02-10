@@ -1,9 +1,9 @@
+use crate::utils::{normalize_focal_length, normalize_white_balance};
 use rusqlite::{Connection, Result};
 use serde_json::Value;
-use crate::utils::{normalize_focal_length, normalize_white_balance};
+use chrono::NaiveDateTime;
 
-pub fn create_tables_if_needed(conn:&Connection) -> Result<()> {
-
+pub fn create_tables_if_needed(conn: &Connection) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS metadata (
             source_file TEXT PRIMARY KEY,
@@ -26,29 +26,44 @@ pub fn create_tables_if_needed(conn:&Connection) -> Result<()> {
     Ok(())
 }
 
-pub fn insert_metadata(conn: &Connection, file_path: &str, mod_time: f64, metadata: &Value) -> Result<()> {
+pub fn insert_metadata(
+    conn: &Connection,
+    file_path: &str,
+    mod_time: f64,
+    metadata: &Value,
+) -> Result<()> {
     conn.execute(
         "INSERT OR REPLACE INTO metadata VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         rusqlite::params![
             file_path,
             mod_time,
-            metadata["DateTimeOriginal"].as_str().unwrap_or("N/A"),
+            metadata["DateTimeOriginal"]
+                .as_str()
+                .map_or("N/A".to_string(), format_date),
             metadata["Model"].as_str().unwrap_or("N/A"),
             metadata["LensModel"].as_str().unwrap_or("N/A"),
             metadata["ISO"].as_str().unwrap_or("N/A"),
             metadata["ExposureTime"].as_str().unwrap_or("N/A"),
             metadata["FNumber"].as_str().unwrap_or("N/A"),
-            normalize_focal_length(metadata["FocalLength"].as_str()),  // Ensures proper formatting
+            normalize_focal_length(metadata["FocalLength"].as_str()), // Ensures proper formatting
             metadata["Flash"].as_str().unwrap_or("N/A"),
             normalize_white_balance(metadata["WhiteBalance"].as_str()),
             metadata["ImageWidth"].as_str().unwrap_or("N/A"),
             metadata["ImageHeight"].as_str().unwrap_or("N/A"),
-            metadata["FocalLengthIn35mmFormat"].as_str().unwrap_or("N/A"),
+            metadata["FocalLengthIn35mmFormat"]
+                .as_str()
+                .unwrap_or("N/A"),
         ],
     )?;
     Ok(())
 }
 
+pub fn format_date(date: &str) -> String {
+    if let Ok(parsed) = NaiveDateTime::parse_from_str(date, "%Y:%m:%d %H:%M:%S") {
+        return parsed.format("%Y-%m-%d %H:%M:%S").to_string();
+    }
+    "N/A".to_string()
+}
 
 #[cfg(test)]
 mod tests {
@@ -66,7 +81,11 @@ mod tests {
     fn test_create_tables() {
         let conn = setup_test_db();
         let tables: i64 = conn
-            .query_row("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='metadata'", [], |row| row.get(0))
+            .query_row(
+                "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='metadata'",
+                [],
+                |row| row.get(0),
+            )
             .unwrap();
         assert_eq!(tables, 1);
     }
@@ -92,7 +111,11 @@ mod tests {
         insert_metadata(&conn, "test.jpg", 1234567890.0, &metadata).unwrap();
 
         let count: i64 = conn
-            .query_row("SELECT COUNT(*) FROM metadata WHERE source_file = 'test.jpg'", [], |row| row.get(0))
+            .query_row(
+                "SELECT COUNT(*) FROM metadata WHERE source_file = 'test.jpg'",
+                [],
+                |row| row.get(0),
+            )
             .unwrap();
         assert_eq!(count, 1);
     }
@@ -105,9 +128,12 @@ mod tests {
         insert_metadata(&conn, "test.jpg", 1234567890.0, &metadata).unwrap();
 
         let result: String = conn
-            .query_row("SELECT FocalLength FROM metadata WHERE source_file = 'test.jpg'", [], |row| row.get(0))
+            .query_row(
+                "SELECT FocalLength FROM metadata WHERE source_file = 'test.jpg'",
+                [],
+                |row| row.get(0),
+            )
             .unwrap();
         assert_eq!(result, "N/A"); // Should be "N/A" instead of empty
     }
 }
-

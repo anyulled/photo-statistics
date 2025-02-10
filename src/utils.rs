@@ -24,3 +24,26 @@ pub fn normalize_white_balance(wb: Option<&str>) -> String {
         _ => "manual".to_string(),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_normalize_focal_length() {
+        assert_eq!(normalize_focal_length(Some("50mm")), "50 mm");
+        assert_eq!(normalize_focal_length(Some("50.5mm")), "50.5 mm");
+        assert_eq!(normalize_focal_length(Some(" 85 MM ")), "85 mm");
+        assert_eq!(normalize_focal_length(Some("abc")), "N/A"); // Invalid input
+        assert_eq!(normalize_focal_length(None), "N/A"); // Null input
+    }
+
+    #[test]
+    fn test_normalize_white_balance() {
+        assert_eq!(normalize_white_balance(Some("Auto")), "auto");
+        assert_eq!(normalize_white_balance(Some("Daylight")), "daylight");
+        assert_eq!(normalize_white_balance(Some("Custom")), "manual");
+        assert_eq!(normalize_white_balance(Some("Unknown")), "manual");
+        assert_eq!(normalize_white_balance(None), "manual"); // Null input
+    }
+}
