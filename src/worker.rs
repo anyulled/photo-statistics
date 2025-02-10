@@ -23,3 +23,9 @@ pub fn process_files_in_parallel(files: Vec<String>) {
         }
     });
 }
+
+#[test]
+fn test_worker_parallel_processing() {
+    let files = vec!["test1.jpg".to_string(), "test2.jpg".to_string()];
+    process_files_in_parallel(files);
+}
