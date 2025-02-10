@@ -1,26 +1,40 @@
-name: Rust
+name: Rust Build & SonarQube Analysis
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    types: [opened, synchronize, reopened]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  sonarqube:
+    name: SonarQube Analysis
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: |
-        for i in {1..5}; do
-          cargo build && break
-          sleep 10
-        done
-    - name: Run tests
-      run: cargo test --verbose
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for accurate analysis
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  build:
+    name: Rust Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Rust Project
+        run: |
+          for i in {1..5}; do
+            cargo build && break
+            sleep 10
+          done
+
+      - name: Run Rust Tests
+        run: cargo test --verbose
