@@ -55,6 +55,7 @@ mod tests {
     use serde_json::json;
     use std::collections::HashMap;
     use crate::database::{create_tables_if_needed, insert_metadata};
+    use crate::statistics::generate_statistics;
 
     fn setup_test_db() -> Connection {
         let conn = Connection::open_in_memory().unwrap();
@@ -100,4 +101,11 @@ mod tests {
 
         assert_eq!(counts.get("N/A"), Some(&1)); // ✅ Should default to "N/A"
     }
+
+    #[test]
+    fn test_empty_statistics() {
+        setup_test_db();
+        generate_statistics();
+    }
+
 }

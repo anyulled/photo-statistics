@@ -21,3 +21,28 @@ pub fn scan_directory(directory: &str) -> Vec<String> {
     }
     files
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_scan_directory() {
+        let temp_dir = tempdir().unwrap();
+        let file_path = temp_dir.path().join("image.jpg");
+        fs::write(&file_path, "test").unwrap();
+
+        let results = scan_directory(temp_dir.path().to_str().unwrap());
+        assert_eq!(results.len(), 1);
+        assert!(results[0].ends_with("image.jpg"));
+    }
+
+    #[test]
+    fn test_scan_directory_no_images() {
+        let temp_dir = tempdir().unwrap();
+        let results = scan_directory(temp_dir.path().to_str().unwrap());
+        assert_eq!(results.len(), 0);
+    }
+}
