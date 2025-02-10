@@ -2,15 +2,17 @@ mod database;
 mod exiftool;
 mod files;
 mod statistics;
-mod worker;
 mod utils;
+mod worker;
 
 use database::create_tables_if_needed;
 use files::scan_directory;
+use rusqlite::Connection;
 use statistics::generate_statistics;
-use worker::process_files_in_parallel;
 use std::env;
 use std::time::Instant;
+use worker::process_files_in_parallel;
+const DB_FILE: &str = "photo_stats_cache.db";
 
 fn main() {
     env_logger::init();
@@ -20,7 +22,9 @@ fn main() {
 
     println!("📂 Processing directory: {}", directory);
 
-    create_tables_if_needed().expect("Failed to create database tables.");
+    let conn = Connection::open(DB_FILE);
+
+    create_tables_if_needed(&conn.unwrap()).expect("Failed to create database tables.");
 
     println!("🔍 Scanning directory...");
     let files = scan_directory(&directory);
@@ -40,4 +44,3 @@ fn main() {
 
     println!("✅ Completed in {:.2?}", start_time.elapsed());
 }
-
