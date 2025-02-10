@@ -4,6 +4,7 @@ use serde_json::Value;
 use chrono::NaiveDateTime;
 
 pub fn create_tables_if_needed(conn: &Connection) -> Result<()> {
+    println!("🔍 Creating tables...");
     conn.execute(
         "CREATE TABLE IF NOT EXISTS metadata (
             source_file TEXT PRIMARY KEY,
@@ -23,6 +24,7 @@ pub fn create_tables_if_needed(conn: &Connection) -> Result<()> {
         )",
         [],
     )?;
+    println!("✅ Table created!");
     Ok(())
 }
 
@@ -72,7 +74,7 @@ mod tests {
     use serde_json::json;
 
     fn setup_test_db() -> Connection {
-        let conn = Connection::open_in_memory().unwrap(); // Use in-memory DB for testing
+        let conn = Connection::open_in_memory().unwrap();
         create_tables_if_needed(&conn).unwrap();
         conn
     }
