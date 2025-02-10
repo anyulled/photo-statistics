@@ -1,12 +1,17 @@
 pub fn normalize_focal_length(focal: Option<&str>) -> String {
     if let Some(focal) = focal {
-        let focal_clean = focal.replace("mm", "").trim().to_string();
+        let focal_clean = focal
+            .trim()
+            .to_lowercase()
+            .replace("mm", "")
+            .trim()
+            .to_string();
         if let Ok(value) = focal_clean.parse::<f64>() {
             return if value.fract() == 0.0 {
                 format!("{} mm", value as i64)
             } else {
                 format!("{:.1} mm", value)
-            }
+            };
         }
     }
     "N/A".to_string()
