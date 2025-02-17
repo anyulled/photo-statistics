@@ -68,6 +68,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: code-coverage
-          path: coverage.lcov
+          path: coverage.xml
           compression-level: 6
           retention-days: 7
