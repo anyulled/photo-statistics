@@ -1,5 +1,6 @@
 # 🦀 Exif Photo stats
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=anyulled_photo-statistics&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=anyulled_photo-statistics)
 This is a rust crate that reads the EXIF data from the photos in a folder and prints some stats about it.
 
 example:
