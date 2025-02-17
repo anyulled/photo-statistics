@@ -72,9 +72,9 @@ jobs:
           name: code-coverage
           path: .
       - name: Inspect Coverage Report
-        run: cat target/coverage/cobertura.xml
+        run: cat cobertura.xml
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_SCANNER_OPTS: "-Dsonar.coverageReportPaths=target/coverage/cobertura.xml"
+          SONAR_SCANNER_OPTS: "-Dsonar.coverageReportPaths=cobertura.xml"
