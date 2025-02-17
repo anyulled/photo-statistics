@@ -26,6 +26,8 @@ jobs:
         with:
           name: code-coverage 
           path: .
+      - name: Inspect Coverage Report
+        run: cat coverage.xml
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
         env:
