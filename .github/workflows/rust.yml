@@ -9,25 +9,39 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-Cinstrument-coverage"
+  LLVM_PROFILE_FILE: "target/coverage/%m.profraw"
 
 jobs:
   sonarqube:
     name: SonarQube Analysis
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Required for accurate analysis
+          fetch-depth: 0 
+      - name: Download Coverage Report
+        uses: actions/download-artifact@v3
+        with:
+          name: code-coverage          
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_SCANNER_OPTS: "-Dsonar.coverageReportPaths=coverage.lcov"
 
   build:
     name: Rust Build & Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y lcov jq
+          rustup component add llvm-tools-preview
+          cargo install grcov
       
       - name: Build Rust Project
         run: |
@@ -36,5 +50,20 @@ jobs:
             sleep 10
           done
 
-      - name: Run Rust Tests
-        run: cargo test --verbose
+      - name: Run Rust Tests with Coverage
+        run: |
+          mkdir -p target/coverage
+          cargo test --verbose --no-fail-fast
+
+      - name: Generate Coverage Report
+        run: |
+          grcov target/coverage -s . \
+            --binary-path ./target/debug \
+            -t lcov --ignore-not-existing \
+            -o coverage.lcov
+
+      - name: Upload Coverage as Artifact (Optional)
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-coverage
+          path: coverage.lcov
