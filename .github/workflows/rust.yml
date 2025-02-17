@@ -45,6 +45,7 @@ jobs:
           -s . \
           --branch \
           -o target/coverage \
+          --ignore "/*" \
           --ignore-not-existing \
           --keep-only 'src/*' \
           --output-types html,cobertura        
