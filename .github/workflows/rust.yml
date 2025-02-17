@@ -43,7 +43,6 @@ jobs:
           sudo apt-get update && sudo apt-get install -y lcov jq
           rustup component add llvm-tools-preview
           cargo install grcov
-          pip install lcov-to-cobertura
       
       - name: Build Rust Project
         run: |
@@ -61,12 +60,9 @@ jobs:
         run: |
           grcov target/coverage -s . \
             --binary-path ./target/debug \
-            -t lcov --ignore-not-existing \
-            -o coverage.lcov
-
-      - name: Convert LCOV to Cobertura XML
-        run: |
-          lcov-to-cobertura coverage.lcov --output coverage.xml            
+            --branch \
+            -t cobertura --ignore-not-existing \
+            -o coverage.xml        
 
       - name: Upload Coverage as Artifact (Optional)
         uses: actions/upload-artifact@v4
