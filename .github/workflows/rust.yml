@@ -50,11 +50,11 @@ jobs:
           --output-types html,cobertura        
       - name: list files in coverage folder
         run: ls -l target/coverage
-      - name: Upload Coverage as Artifact (Optional)
+      - name: Upload Coverage as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: code-coverage
-          path: cobertura.xml
+          path: target/coverage/cobertura.xml
           compression-level: 6
           retention-days: 7
 
