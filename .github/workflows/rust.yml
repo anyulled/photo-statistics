@@ -30,7 +30,7 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_SCANNER_OPTS: "-Dsonar.coverageReportPaths=coverage.lcov"
+          SONAR_SCANNER_OPTS: "-Dsonar.coverageReportPaths=coverage.xml"
 
   build:
     name: Rust Build & Test
@@ -43,6 +43,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y lcov jq
           rustup component add llvm-tools-preview
           cargo install grcov
+          pip install lcov-to-cobertura
       
       - name: Build Rust Project
         run: |
@@ -62,6 +63,10 @@ jobs:
             --binary-path ./target/debug \
             -t lcov --ignore-not-existing \
             -o coverage.lcov
+
+      - name: Convert LCOV to Cobertura XML
+        run: |
+          lcov-to-cobertura coverage.lcov --output coverage.xml            
 
       - name: Upload Coverage as Artifact (Optional)
         uses: actions/upload-artifact@v4
