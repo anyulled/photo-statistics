@@ -48,7 +48,8 @@ jobs:
           --ignore-not-existing \
           --keep-only 'src/*' \
           --output-types html,cobertura        
-
+      - name: list files in coverage folder
+        run: ls -l target/coverage
       - name: Upload Coverage as Artifact (Optional)
         uses: actions/upload-artifact@v4
         with:
