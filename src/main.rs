@@ -15,17 +15,6 @@ use std::env;
 use std::time::Instant;
 use worker::process_files_in_parallel;
 
-/// Main function for the photo-statistics application
-///
-/// This function is the entry point for the application. It:
-/// 1. Initializes the logger
-/// 2. Gets the directory to process from command-line arguments
-/// 3. Opens a connection to the database
-/// 4. Creates tables if needed
-/// 5. Scans the directory for files
-/// 6. Processes the files in parallel
-/// 7. Generates statistics
-/// 8. Prints the elapsed time
 fn main() {
     env_logger::init();
 

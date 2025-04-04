@@ -1,15 +1,6 @@
 use rusqlite::Connection;
 use std::collections::HashMap;
 
-/// Generate statistics from the metadata in the database
-///
-/// This function queries the database for various statistics and prints them to the console.
-/// If an error occurs during the query, it will be logged and the function will continue
-/// with the next query.
-///
-/// # Arguments
-///
-/// * `connection` - A reference to the database connection
 pub fn generate_statistics(connection: &Connection) {
     let mut stats = HashMap::new();
 

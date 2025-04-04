@@ -6,20 +6,14 @@ use crate::config::Config;
 use crate::exiftool::run_exiftool;
 use crate::database::insert_metadata;
 
-/// Process files in parallel, extracting metadata and storing it in the database
-///
-/// This function processes files in parallel chunks, using transactions for batch processing
-/// to reduce database lock contention.
-///
-/// # Arguments
-///
-/// * `files` - A vector of file paths to process
-/// * `config` - The application configuration
 pub fn process_files_in_parallel(files: Vec<String>, config: &Config) {
-    let conn = Mutex::new(
-        Connection::open(&config.database_path)
-            .expect("Failed to open database")
-    );
+    let conn = match Connection::open(&config.database_path) {
+        Ok(conn) => Mutex::new(conn),
+        Err(err) => {
+            eprintln!("Error opening database: {:?}", err);
+            return;
+        }
+    };
 
     files.par_chunks(50).for_each(|chunk| {
         let metadata = match run_exiftool(chunk) {
