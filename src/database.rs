@@ -47,7 +47,7 @@ pub fn insert_metadata(
             metadata["ISO"].as_str().unwrap_or("N/A"),
             metadata["ExposureTime"].as_str().unwrap_or("N/A"),
             metadata["FNumber"].as_str().unwrap_or("N/A"),
-            normalize_focal_length(metadata["FocalLength"].as_str()), // Ensures proper formatting
+            normalize_focal_length(metadata["FocalLength"].as_str()),
             metadata["Flash"].as_str().unwrap_or("N/A"),
             normalize_white_balance(metadata["WhiteBalance"].as_str()),
             metadata["ImageWidth"].as_str().unwrap_or("N/A"),
@@ -125,7 +125,7 @@ mod tests {
     #[test]
     fn test_insert_null_metadata() {
         let conn = setup_test_db();
-        let metadata = json!({}); // Empty metadata
+        let metadata = json!({});
 
         insert_metadata(&conn, "test.jpg", 1234567890.0, &metadata).unwrap();
 
@@ -136,7 +136,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(result, "N/A"); // Should be "N/A" instead of empty
+        assert_eq!(result, "N/A");
     }
 
     #[test]
