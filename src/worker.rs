@@ -6,12 +6,17 @@ use crate::config::Config;
 use crate::exiftool::run_exiftool;
 use crate::database::insert_metadata;
 
-pub fn process_files_in_parallel(files: Vec<String>, config: &Config) {
+pub fn process_files_in_parallel(files: Vec<String>, config: &Config) -> Result<(), String> {
+    if files.is_empty() {
+        return Ok(());  
+    }
+
     let conn = match Connection::open(&config.database_path) {
         Ok(conn) => Mutex::new(conn),
         Err(err) => {
-            eprintln!("Error opening database: {:?}", err);
-            return;
+            let error_msg = format!("Error opening database: {:?}", err);
+            eprintln!("{}", error_msg);
+            return Err(error_msg);
         }
     };
 
@@ -62,11 +67,48 @@ pub fn process_files_in_parallel(files: Vec<String>, config: &Config) {
             eprintln!("Error committing transaction: {:?}", err);
         }
     });
+
+    Ok(())
 }
 
-#[test]
-fn test_worker_parallel_processing() {
-    let files = vec!["test1.jpg".to_string(), "test2.jpg".to_string()];
-    let config = crate::config::Config::new();
-    process_files_in_parallel(files, &config);
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_worker_parallel_processing() {
+        let files = vec!["test1.jpg".to_string(), "test2.jpg".to_string()];
+        let config = Config::new();
+        let _result = process_files_in_parallel(files, &config);
+    }
+
+    #[test]
+    fn test_empty_files_array() {
+        let files: Vec<String> = vec![];
+        let config = Config::new();
+        let result = process_files_in_parallel(files, &config);
+        assert!(result.is_ok(), "Processing empty files array should succeed");
+    }
+
+    #[test]
+    fn test_nonexistent_files() {
+        let files = vec!["nonexistent1.jpg".to_string(), "nonexistent2.jpg".to_string()];
+        let config = Config::new();
+        let result = process_files_in_parallel(files, &config);
+        assert!(result.is_ok(), "Processing nonexistent files should not panic");
+    }
+
+    #[test]
+    fn test_invalid_database_path() {
+        let files = vec!["test1.jpg".to_string()];
+        let mut config = Config::new();
+
+        let temp_dir = tempdir().unwrap();
+        let invalid_db_path = temp_dir.path().join("nonexistent_dir").join("db.sqlite");
+        config.database_path = invalid_db_path;
+
+        let result = process_files_in_parallel(files, &config);
+        assert!(result.is_err(), "Processing with invalid database path should fail");
+    }
 }

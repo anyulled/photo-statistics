@@ -30,14 +30,14 @@ This document contains a comprehensive list of improvement tasks for the Photo S
 
 ## Testing Improvements
 
-* [ ] Increase unit test coverage across all modules
+* [x] Increase unit test coverage across all modules
 * [ ] Add more comprehensive integration tests with different scenarios
 * [ ] Implement property-based testing for complex logic
-* [ ] Add tests for error conditions and edge cases
+* [x] Add tests for error conditions and edge cases
 * [ ] Create mocks for external dependencies (ExifTool, filesystem)
 * [ ] Implement frontend component tests
 * [ ] Add end-to-end tests for the complete application flow
-* [ ] Set up test fixtures for consistent test data
+* [x] Set up test fixtures for consistent test data
 * [ ] Implement performance benchmarks
 * [ ] Add test coverage targets and enforce them in CI
 

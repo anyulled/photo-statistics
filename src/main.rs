@@ -50,7 +50,10 @@ fn main() {
     }
 
     println!("🚀 Processing metadata...");
-    process_files_in_parallel(files, &config);
+    if let Err(err) = process_files_in_parallel(files, &config) {
+        eprintln!("Error processing files: {}", err);
+        return;
+    }
 
     println!("📊 Generating statistics...");
     generate_statistics(&conn);
