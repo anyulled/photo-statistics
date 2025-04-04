@@ -1,7 +1,15 @@
 use rusqlite::Connection;
 use std::collections::HashMap;
-use std::println;
 
+/// Generate statistics from the metadata in the database
+///
+/// This function queries the database for various statistics and prints them to the console.
+/// If an error occurs during the query, it will be logged and the function will continue
+/// with the next query.
+///
+/// # Arguments
+///
+/// * `connection` - A reference to the database connection
 pub fn generate_statistics(connection: &Connection) {
     let mut stats = HashMap::new();
 
@@ -27,14 +35,29 @@ pub fn generate_statistics(connection: &Connection) {
     ];
 
     for (title, query) in queries {
-        let mut stmt = connection.prepare(query).unwrap();
-        let results: HashMap<String, i32> = stmt
-            .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get(1)?)))
-            .unwrap()
-            .filter_map(Result::ok)
-            .collect();
-
-        stats.insert(title, results);
+        match connection.prepare(query) {
+            Ok(mut stmt) => {
+                match stmt.query_map([], |row| {
+                    Ok((
+                        row.get::<_, String>(0).unwrap_or_else(|_| "Unknown".to_string()),
+                        row.get(1).unwrap_or(0)
+                    ))
+                }) {
+                    Ok(rows) => {
+                        let results: HashMap<String, i32> = rows
+                            .filter_map(Result::ok)
+                            .collect();
+                        stats.insert(title, results);
+                    },
+                    Err(err) => {
+                        eprintln!("Error executing query for {}: {:?}", title, err);
+                    }
+                }
+            },
+            Err(err) => {
+                eprintln!("Error preparing query for {}: {:?}", title, err);
+            }
+        }
     }
 
     for (title, data) in stats {
@@ -48,7 +71,7 @@ pub fn generate_statistics(connection: &Connection) {
 
 #[cfg(test)]
 mod tests {
-    
+
     use rusqlite::Connection;
     use serde_json::json;
     use std::collections::HashMap;
