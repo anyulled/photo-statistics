@@ -3,7 +3,7 @@ use std::process::{Command, Output};
 
 fn execute_exiftool(file_paths: &[String]) -> std::io::Result<Output> {
     Command::new("exiftool")
-        .args(&[
+        .args([
             "-json",
             "-DateTimeOriginal",
             "-Model",
