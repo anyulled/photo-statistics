@@ -50,14 +50,18 @@ jobs:
           --keep-only 'src/*' \
           --output-types html,cobertura,lcov        
       - name: list files in coverage folder
-        run: ls -l target/coverage
+        run: |
+          ls -l target/coverage
+          ls -l target/coverage/lcov
+          ls -l target/coverage/html
       - name: Upload Coverage as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: code-coverage
           path: |
             target/coverage/cobertura.xml
-            target/coverage/lcov.info
+            target/coverage/lcov
+            target/coverage/html
           compression-level: 6
           retention-days: 7
 
@@ -78,10 +82,10 @@ jobs:
         run: | 
           ls -la
           cat cobertura.xml
-          cat lcov.info
+          cat lcov
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
         continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_SCANNER_OPTS: "-Dsonar.coverageReportPaths=lcov.info"
+          SONAR_SCANNER_OPTS: "-Dsonar.coverageReportPaths=lcov"

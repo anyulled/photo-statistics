@@ -19,5 +19,6 @@ grcov target/coverage \
         --keep-only 'src/*' \
         --output-types html,cobertura,lcov
 xmllint --xpath "concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')" target/coverage/cobertura.xml
-cat target/coverage/cobertura.xml
+#cat target/coverage/cobertura.xml
+#cat target/coverage/lcov
 sonar-scanner --debug > sonar.log
