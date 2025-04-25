@@ -99,4 +99,4 @@ jobs:
         continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_SCANNER_OPTS: "-Dsonar.coverageReportPaths=lcov"
+          SONAR_SCANNER_OPTS: "-Dsonar.rust.lcov.reportPaths=lcov"
