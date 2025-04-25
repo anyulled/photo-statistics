@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rusqlite = { version = "0.34", features = ["bundled"] }
+rusqlite = { version = "0.35", features = ["bundled"] }
 walkdir = "2.4"
 rayon = "1.8"
 serde = { version = "1.0", features = ["derive"] }
