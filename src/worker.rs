@@ -1,71 +1,88 @@
 use rayon::prelude::*;
 use std::sync::Mutex;
 use std::time::UNIX_EPOCH;
-use rusqlite::Connection;
+use rusqlite::{Connection, Transaction};
 use crate::config::Config;
 use crate::exiftool::run_exiftool;
 use crate::database::insert_metadata;
+use serde_json::Value;
+
+fn init_database_connection(db_path: &std::path::Path) -> Result<Mutex<Connection>, String> {
+    match Connection::open(db_path) {
+        Ok(conn) => Ok(Mutex::new(conn)),
+        Err(err) => {
+            let error_msg = format!("Error opening database: {:?}", err);
+            eprintln!("{}", error_msg);
+            Err(error_msg)
+        }
+    }
+}
+
+fn get_file_mod_time_secs(file_path: &str) -> f64 {
+    let mod_time = std::fs::metadata(file_path)
+        .and_then(|m| m.modified())
+        .unwrap_or(UNIX_EPOCH);
+
+    match mod_time.duration_since(UNIX_EPOCH) {
+        Ok(duration) => duration.as_secs_f64(),
+        Err(err) => {
+            eprintln!("Error calculating duration: {:?}", err);
+            0.0
+        }
+    }
+}
+
+fn process_chunk(chunk: &[String], conn: &Mutex<Connection>) {
+    let metadata = match run_exiftool(chunk) {
+        Ok(data) => data,
+        Err(err) => {
+            eprintln!("Error running exiftool: {:?}", err);
+            return;
+        }
+    };
+    
+    let mut db_conn = match conn.lock() {
+        Ok(conn) => conn,
+        Err(err) => {
+            eprintln!("Error acquiring database lock: {:?}", err);
+            return;
+        }
+    };
+
+    let transaction = match db_conn.transaction() {
+        Ok(tx) => tx,
+        Err(err) => {
+            eprintln!("Error starting transaction: {:?}", err);
+            return;
+        }
+    };
+
+    process_files_in_transaction(&transaction, chunk, &metadata);
+
+    if let Err(err) = transaction.commit() {
+        eprintln!("Error committing transaction: {:?}", err);
+    }
+}
+
+fn process_files_in_transaction(transaction: &Transaction, files: &[String], metadata: &[Value]) {
+    for (file, data) in files.iter().zip(metadata.iter()) {
+        let mod_time_secs = get_file_mod_time_secs(file);
+
+        if let Err(err) = insert_metadata(transaction, file, mod_time_secs, data) {
+            eprintln!("Error inserting metadata: {:?}", err);
+        }
+    }
+}
 
 pub fn process_files_in_parallel(files: Vec<String>, config: &Config) -> Result<(), String> {
     if files.is_empty() {
         return Ok(());  
     }
 
-    let conn = match Connection::open(&config.database_path) {
-        Ok(conn) => Mutex::new(conn),
-        Err(err) => {
-            let error_msg = format!("Error opening database: {:?}", err);
-            eprintln!("{}", error_msg);
-            return Err(error_msg);
-        }
-    };
+    let conn = init_database_connection(&config.database_path)?;
 
     files.par_chunks(50).for_each(|chunk| {
-        let metadata = match run_exiftool(chunk) {
-            Ok(data) => data,
-            Err(err) => {
-                eprintln!("Error running exiftool: {:?}", err);
-                return;
-            }
-        };
-
-        let mut db_conn = match conn.lock() {
-            Ok(conn) => conn,
-            Err(err) => {
-                eprintln!("Error acquiring database lock: {:?}", err);
-                return;
-            }
-        };
-
-        let transaction = match db_conn.transaction() {
-            Ok(tx) => tx,
-            Err(err) => {
-                eprintln!("Error starting transaction: {:?}", err);
-                return;
-            }
-        };
-
-        for (file, data) in chunk.iter().zip(metadata.iter()) {
-            let mod_time = std::fs::metadata(file)
-                .and_then(|m| m.modified())
-                .unwrap_or(UNIX_EPOCH);
-
-            let mod_time_secs = match mod_time.duration_since(UNIX_EPOCH) {
-                Ok(duration) => duration.as_secs_f64(),
-                Err(err) => {
-                    eprintln!("Error calculating duration: {:?}", err);
-                    0.0
-                }
-            };
-
-            if let Err(err) = insert_metadata(&transaction, file, mod_time_secs, data) {
-                eprintln!("Error inserting metadata: {:?}", err);
-            }
-        }
-
-        if let Err(err) = transaction.commit() {
-            eprintln!("Error committing transaction: {:?}", err);
-        }
+        process_chunk(chunk, &conn);
     });
 
     Ok(())
