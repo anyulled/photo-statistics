@@ -55,7 +55,7 @@ jobs:
           ls -l target/coverage/lcov
           ls -l target/coverage/html
       - name: Upload Coverage as Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: code-coverage
           path: |
@@ -85,7 +85,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Download Coverage Report
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: code-coverage
           path: .
