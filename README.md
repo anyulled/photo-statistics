@@ -1,9 +1,11 @@
-# 🦀 Exif Photo Statistics
+# Photo Statistics
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=anyulled_photo-statistics&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=anyulled_photo-statistics)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=anyulled_photo-statistics&metric=coverage)](https://sonarcloud.io/summary/new_code?id=anyulled_photo-statistics)
 
-A high-performance Rust tool that scans directories for photos, extracts EXIF metadata (using ExifTool), and generates statistical insights.
+![Logo](assets/logo.png)
+
+A high-performance command-line tool and desktop application to analyze your photography habits from EXIF metadata.
 
 ## ✨ Features
 
