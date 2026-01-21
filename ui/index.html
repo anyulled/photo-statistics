@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Analytics Dashboard</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00bdd6",
+                        "background-light": "#f7f7f7", // Although design is dark-focused, keeping for compliance
+                        "background-dark": "#121212",
+                        "surface": "#1D1D1D",
+                        "surface-dark": "#0A0A0A",
+                        "surface-border": "rgba(255, 255, 255, 0.1)",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "9999px", "sm": "0.125rem" },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+            color: #E0E0E0;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Custom scrollbar for horizontal containers */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Custom scrollbar for terminal */
+        .terminal-scroll::-webkit-scrollbar {
+            width: 4px
+        }
+
+        .terminal-scroll::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        .terminal-scroll::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 2px
+        }
+
+        /* Checkbox custom tick */
+        .custom-checkbox:checked {
+            background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBcwlZqkxfiKCMu-O8WNGesT9BBLt1SxboDynBl6MPOx2nk_-wwCm_KYRibvmD5nEzs7gEo0CJow7uy2mZdGGJMp0MQzlXyg63c3GOTq3oYD8cWI4Ad7Q83cg0QxPXjXWqOdF5IozHorGHdJjUNeymUlR04jyilHFG1A68CfiGZBgqXbma1lp4-VbvigGUA8jt-uTHCTFIRRiZbqt-cxnVCkM2Pap08IhXWHUJ3mpUQXJy6gS8QsETSxNz-IaF5VwWiW3E-PvTxq6CZ)
+        }
+
+        /* Blink animation for terminal cursor */
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .cursor-blink {
+            animation: blink 1s step-end infinite
+        }
+
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark min-h-screen relative pb-12 overflow-hidden">
+    <!-- Header -->
+    <header class="sticky top-0 z-20 bg-background-dark/95 backdrop-blur-md border-b border-surface-border">
+        <div class="flex items-center justify-between px-4 py-4">
+            <h1 class="text-white text-lg font-bold tracking-tight">Library Overview</h1>
+            <button class="text-gray-400 hover:text-primary transition-colors" id="settings-btn">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
+        </div>
+    </header>
+    <main class="flex flex-col gap-4 p-4 overflow-y-auto h-full pb-20">
+        <!-- Summary Metrics Grid -->
+        <div class="grid grid-cols-2 gap-3">
+            <!-- Total Photos -->
+            <div class="bg-surface-dark border border-surface-border rounded p-4 flex flex-col justify-between h-28">
+                <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Total Photos</span>
+                <span class="text-white font-mono text-2xl font-bold" id="total-photos">...</span>
+            </div>
+            <!-- Top Body -->
+            <div class="bg-surface-dark border border-surface-border rounded p-4 flex flex-col justify-between h-28">
+                <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Top Body</span>
+                <span class="text-primary font-mono text-xl font-bold truncate" id="top-body">...</span>
+            </div>
+            <!-- Top Glass -->
+            <div class="bg-surface-dark border border-surface-border rounded p-4 flex flex-col justify-between h-28">
+                <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Top Glass</span>
+                <span class="text-white font-mono text-xl font-bold truncate" id="top-glass">...</span>
+            </div>
+            <!-- Mode ISO -->
+            <div class="bg-surface-dark border border-surface-border rounded p-4 flex flex-col justify-between h-28">
+                <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Mode ISO</span>
+                <span class="text-white font-mono text-2xl font-bold" id="mode-iso">...</span>
+            </div>
+        </div>
+        <!-- Timeline Histogram -->
+        <div class="bg-surface-dark border border-surface-border rounded p-4">
+            <div class="flex justify-between items-end mb-4">
+                <h3 class="text-gray-300 text-sm font-semibold">Capture Volume</h3>
+                <span class="text-primary text-xs font-mono">2020-2024</span>
+            </div>
+            <div class="h-40 flex items-end justify-between gap-1">
+                <!-- 2020 -->
+                <div class="flex flex-col items-center gap-2 flex-1 group">
+                    <div
+                        class="w-full bg-surface-border hover:bg-primary/50 transition-colors relative rounded-sm h-[30%]">
+                    </div>
+                    <span class="text-[10px] text-gray-500 font-mono">20</span>
+                </div>
+                <!-- 2021 -->
+                <div class="flex flex-col items-center gap-2 flex-1 group">
+                    <div
+                        class="w-full bg-surface-border hover:bg-primary/50 transition-colors relative rounded-sm h-[45%]">
+                    </div>
+                    <span class="text-[10px] text-gray-500 font-mono">21</span>
+                </div>
+                <!-- 2022 -->
+                <div class="flex flex-col items-center gap-2 flex-1 group">
+                    <div class="w-full bg-primary hover:bg-primary/80 transition-colors relative rounded-sm h-[85%]">
+                    </div>
+                    <span class="text-[10px] text-primary font-mono font-bold">22</span>
+                </div>
+                <!-- 2023 -->
+                <div class="flex flex-col items-center gap-2 flex-1 group">
+                    <div
+                        class="w-full bg-surface-border hover:bg-primary/50 transition-colors relative rounded-sm h-[60%]">
+                    </div>
+                    <span class="text-[10px] text-gray-500 font-mono">23</span>
+                </div>
+                <!-- 2024 -->
+                <div class="flex flex-col items-center gap-2 flex-1 group">
+                    <div
+                        class="w-full bg-surface-border hover:bg-primary/50 transition-colors relative rounded-sm h-[20%]">
+                    </div>
+                    <span class="text-[10px] text-gray-500 font-mono">24</span>
+                </div>
+            </div>
+        </div>
+        <!-- Gear Breakdown Section -->
+        <div class="grid grid-cols-2 gap-3">
+            <!-- Cameras Donut -->
+            <div class="bg-surface-dark border border-surface-border rounded p-4 flex flex-col items-center">
+                <h3 class="text-gray-300 text-xs font-semibold w-full mb-3 uppercase tracking-wider">Cameras</h3>
+                <div class="relative size-24 mb-2">
+                    <svg class="size-full -rotate-90" viewbox="0 0 36 36">
+                        <!-- Background Circle -->
+                        <path class="text-surface-border"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none" stroke="currentColor" stroke-width="3"></path>
+                        <!-- Value Circle (Sony 60%) -->
+                        <path class="text-primary"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none" stroke="currentColor" stroke-dasharray="0, 100" id="camera-donut-val"
+                            stroke-width="3"></path>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-white font-mono text-sm font-bold" id="camera-donut-text">--%</span>
+                    </div>
+                </div>
+                <div class="flex gap-2 text-[10px] font-mono text-gray-400">
+                    <span class="flex items-center gap-1"><span
+                            class="w-1.5 h-1.5 bg-primary rounded-full"></span>Top</span>
+                </div>
+            </div>
+            <!-- Lenses Donut -->
+            <div class="bg-surface-dark border border-surface-border rounded p-4 flex flex-col items-center">
+                <h3 class="text-gray-300 text-xs font-semibold w-full mb-3 uppercase tracking-wider">Lenses</h3>
+                <div class="relative size-24 mb-2">
+                    <svg class="size-full -rotate-90" viewbox="0 0 36 36">
+                        <!-- Background Circle -->
+                        <path class="text-surface-border"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none" stroke="currentColor" stroke-width="3"></path>
+                        <!-- Value Circle (Primes 70%) -->
+                        <path class="text-primary"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none" stroke="currentColor" stroke-dasharray="0, 100" id="lens-donut-val"
+                            stroke-width="3"></path>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-white font-mono text-sm font-bold" id="lens-donut-text">--%</span>
+                    </div>
+                </div>
+                <div class="flex gap-2 text-[10px] font-mono text-gray-400">
+                    <span class="flex items-center gap-1"><span
+                            class="w-1.5 h-1.5 bg-primary rounded-full"></span>Top</span>
+                </div>
+            </div>
+        </div>
+        <!-- Section Header -->
+        <h2 class="text-white text-base font-bold tracking-tight px-1 mt-2">Exposure Triangle</h2>
+        <!-- Aperture Card -->
+        <div class="bg-surface-dark border border-surface-border rounded p-4">
+            <div class="flex justify-between mb-3">
+                <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Aperture</span>
+                <span class="text-primary font-mono text-xs">...</span>
+            </div>
+            <!-- Aperture Bar Chart -->
+            <div class="flex flex-col gap-2">
+                <!-- Placeholders -->
+            </div>
+        </div>
+        <!-- Shutter/ISO (Original placeholder) -->
+        <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+            <!-- Shutter Speed Card -->
+            <div class="bg-surface-dark border border-surface-border rounded p-4 min-w-[240px] flex-1">
+                <div class="flex justify-between mb-3">
+                    <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Shutter</span>
+                    <span class="text-white font-mono text-xs">...</span>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Footer Status Bar -->
+    <footer
+        class="fixed bottom-0 w-full bg-[#111111] border-t border-surface-border px-4 py-2 flex items-center justify-between text-[10px] font-mono text-gray-500 z-30">
+        <div class="flex items-center gap-2 truncate max-w-[70%]">
+            <span class="material-symbols-outlined text-xs" style="font-size: 12px;">database</span>
+            <span class="truncate">DB: local photo_stats_cache.db</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+            <span>READY</span>
+        </div>
+    </footer>
+
+    <!-- Modal Sheet -->
+    <div id="scan-modal"
+        class="absolute bottom-0 left-0 w-full h-[90%] bg-surface-dark rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.8)] z-40 flex flex-col transform transition-transform duration-300 border-t border-white/5 translate-y-full">
+        <!-- Handle -->
+        <div class="w-full flex justify-center pt-4 pb-2 shrink-0">
+            <div class="w-12 h-1.5 bg-white/20 rounded-full"></div>
+        </div>
+        <!-- Header -->
+        <div class="px-6 pb-6 pt-2 flex justify-between items-center shrink-0">
+            <div>
+                <h2 class="text-white text-2xl font-bold tracking-tight">Scan Configuration</h2>
+                <p class="text-white/40 text-xs mt-1 font-mono uppercase tracking-widest">v2.4.0</p>
+            </div>
+            <button id="close-modal-btn"
+                class="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto px-6 pb-8 space-y-8">
+            <!-- Path Selection -->
+            <div class="space-y-3">
+                <label class="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px]">folder_data</span>
+                    Target Directory
+                </label>
+                <div class="flex gap-2">
+                    <div
+                        class="flex-1 bg-surface border border-white/10 rounded-lg flex items-center overflow-hidden group focus-within:border-primary/50 transition-colors">
+                        <span class="pl-3 text-white/30 select-none font-mono">/</span>
+                        <input id="scan-path-input"
+                            class="w-full bg-transparent border-none text-white text-xs font-mono py-4 px-1 focus:ring-0 placeholder-white/20 truncate"
+                            type="text" value="." />
+                    </div>
+                    <button
+                        class="bg-surface border border-white/10 hover:bg-white/5 text-white text-sm font-medium px-4 rounded-lg transition-all active:scale-95">
+                        Browse
+                    </button>
+                </div>
+            </div>
+            <!-- Settings Toggles -->
+            <div class="grid grid-cols-1 gap-4">
+                <!-- Recursive Scan -->
+                <label
+                    class="flex items-center justify-between p-4 bg-surface border border-white/5 rounded-lg cursor-pointer group hover:border-white/10 transition-all">
+                    <div class="flex flex-col">
+                        <span class="text-white text-sm font-medium">Recursive Scan</span>
+                        <span class="text-white/40 text-xs">Include all sub-directories</span>
+                    </div>
+                    <div class="relative">
+                        <input checked=""
+                            class="custom-checkbox h-6 w-6 rounded border-2 border-white/20 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 transition-all cursor-pointer appearance-none"
+                            type="checkbox" />
+                    </div>
+                </label>
+            </div>
+            <!-- Primary Action -->
+            <button id="start-scan-btn"
+                class="w-full bg-primary hover:bg-primary/90 text-[#0f2124] font-bold text-base py-4 rounded-lg shadow-[0_0_20px_rgba(0,189,214,0.2)] hover:shadow-[0_0_30px_rgba(0,189,214,0.4)] transition-all active:scale-[0.98] flex items-center justify-center gap-3">
+                <span class="material-symbols-outlined">center_focus_strong</span>
+                <span>Start Analysis</span>
+            </button>
+            <!-- Status & Terminal Section -->
+            <div class="pt-2">
+                <div id="scan-status" class="hidden text-xs font-mono text-primary">Scanning...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { invoke } = window.__TAURI__.core;
+
+        // Elements
+        const modal = document.getElementById('scan-modal');
+        const settingsBtn = document.getElementById('settings-btn');
+        const closeBtn = document.getElementById('close-modal-btn');
+        const startScanBtn = document.getElementById('start-scan-btn');
+        const scanStatus = document.getElementById('scan-status');
+        const scanPathInput = document.getElementById('scan-path-input');
+
+        // Toggle Modal
+        settingsBtn.addEventListener('click', () => {
+            modal.classList.remove('translate-y-full');
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modal.classList.add('translate-y-full');
+        });
+
+        // Start Scan Logic
+        startScanBtn.addEventListener('click', async () => {
+            const path = scanPathInput.value;
+            scanStatus.classList.remove('hidden');
+            scanStatus.innerText = "Scanning " + path + "...";
+
+            try {
+                const result = await invoke('start_scan', { directory: path });
+                scanStatus.innerText = "Success: " + result;
+                setTimeout(() => {
+                    modal.classList.add('translate-y-full');
+                    loadStats();
+                }, 1000);
+            } catch (e) {
+                console.error(e);
+                scanStatus.innerText = "Error: " + e;
+            }
+        });
+
+        // Load Stats Logic
+        async function loadStats() {
+            try {
+                const stats = await invoke('get_statistics');
+                console.log("Stats loaded:", stats);
+
+                // Update Total Photos
+                if (stats.photos_per_year) {
+                    const total = Object.values(stats.photos_per_year).reduce((a, b) => a + b, 0);
+                    document.getElementById('total-photos').innerText = total.toLocaleString();
+                }
+
+                // Helper to find top key
+                const getTop = (map) => {
+                    let max = -1;
+                    let topKey = "N/A";
+                    for (const [k, v] of Object.entries(map)) {
+                        if (k !== "N/A" && v > max) {
+                            max = v;
+                            topKey = k;
+                        }
+                    }
+                    return topKey;
+                };
+
+                // Update Top Body
+                if (stats.camera_models) {
+                    document.getElementById('top-body').innerText = getTop(stats.camera_models);
+                    document.getElementById('top-body').title = getTop(stats.camera_models);
+                }
+
+                // Update Top Glass
+                if (stats.lens_models) {
+                    document.getElementById('top-glass').innerText = getTop(stats.lens_models);
+                    document.getElementById('top-glass').title = getTop(stats.lens_models);
+                }
+
+                // Update Mode ISO
+                if (stats.iso) {
+                    document.getElementById('mode-iso').innerText = getTop(stats.iso);
+                }
+
+                // Update Donut Charts (Percentage)
+                if (stats.camera_models && Object.keys(stats.camera_models).length > 0) {
+                    const total = Object.values(stats.camera_models).reduce((a, b) => a + b, 0);
+                    const topModel = getTop(stats.camera_models);
+                    const topCount = stats.camera_models[topModel] || 0;
+                    const percent = total > 0 ? Math.round((topCount / total) * 100) : 0;
+
+                    document.getElementById('camera-donut-text').innerText = percent + "%";
+                    document.getElementById('camera-donut-val').style.strokeDasharray = `${percent}, 100`;
+                }
+
+            } catch (error) {
+                console.error("Failed to load statistics:", error);
+                // document.getElementById('total-photos').innerText = "0"; 
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', loadStats);
+    </script>
+</body>
+
+</html>

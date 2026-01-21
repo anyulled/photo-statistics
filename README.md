@@ -55,9 +55,39 @@ $ photo-statistics ~/Pictures/Holiday2023
   2023: 1240
 
 📊 Camera Models:
-  Sony ILCE-7M3: 1240
+  NIKON Z 6_2: 1240
 
-✅ Completed in 2.45s
+  NIKKOR Z 28-75mm f/2.8: 1
+  NIKKOR Z 70-200mm f/2.8 VR S: 1
+  N/A: 33
+
+📊 Shutter Speed:
+  1/200: 1
+  1/100: 1
+  N/A: 33
+
+📊 Flash Usage:
+  N/A: 33
+  No Flash: 2
+
+📊 Photos Per Year:
+  N/A: 35
+
+📊 Aperture:
+  N/A: 35
+
+📊 Focal Length:
+  N/A: 33
+  82 mm: 1
+  57 mm: 1
+
+📊 White Balance:
+  manual: 34
+  auto: 1
+
+✅ Completed in 1.31s
+
+Process finished with exit code 0
 ```
 
 ## 🧪 Development

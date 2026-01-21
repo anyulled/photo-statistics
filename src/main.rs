@@ -1,17 +1,8 @@
-mod config;
-mod database;
-mod errors;
-mod exiftool;
-mod files;
-mod statistics;
-mod utils;
-mod worker;
-
-use crate::config::{Cli, Config};
-use crate::database::create_tables_if_needed;
-use crate::files::scan_directory;
-use crate::statistics::generate_statistics;
-use crate::worker::process_files_in_parallel;
+use photo_statistics::config::{Cli, Config};
+use photo_statistics::database::create_tables_if_needed;
+use photo_statistics::files::scan_directory;
+use photo_statistics::statistics::generate_statistics;
+use photo_statistics::worker::process_files_in_parallel;
 use anyhow::{Context, Result};
 use clap::Parser;
 use rusqlite::Connection;
@@ -48,7 +39,27 @@ fn main() -> Result<()> {
         .context("Failed to process files")?;
 
     println!("📊 Generating statistics...");
-    generate_statistics(&conn);
+    println!("📊 Generating statistics...");
+    let stats = generate_statistics(&conn)
+        .context("Failed to generate statistics")?;
+
+    let print_map = |title: &str, map: &std::collections::HashMap<String, i32>| {
+        println!("📊 {}:", title);
+        for (key, count) in map {
+            println!("  {}: {}", key, count);
+        }
+        println!();
+    };
+
+    print_map("Photos Per Year", &stats.photos_per_year);
+    print_map("Camera Models", &stats.camera_models);
+    print_map("Lens Models", &stats.lens_models);
+    print_map("ISO", &stats.iso);
+    print_map("Shutter Speed", &stats.shutter_speed);
+    print_map("Aperture", &stats.aperture);
+    print_map("Focal Length", &stats.focal_length);
+    print_map("White Balance", &stats.white_balance);
+    print_map("Flash Usage", &stats.flash_usage);
 
     println!("✅ Completed in {:.2?}", start_time.elapsed());
     
