@@ -1,5 +1,6 @@
 use crate::utils::{normalize_focal_length, normalize_white_balance};
-use rusqlite::{Connection, Result};
+use crate::errors::Result;
+use rusqlite::Connection;
 use serde_json::Value;
 use chrono::NaiveDateTime;
 

@@ -1,21 +1,22 @@
+//! Parallel file processing and database ingestion.
+//!
+//! This module handles the orchestration of reading files execution, extracted metadata,
+//! and storing it in the SQLite database efficiently.
+
 use rayon::prelude::*;
 use std::sync::Mutex;
 use std::time::UNIX_EPOCH;
-use rusqlite::{Connection, Transaction};
+use rusqlite::Transaction;
+use rusqlite::Connection; // Added this explicit import to match usage
 use crate::config::Config;
 use crate::exiftool::run_exiftool;
 use crate::database::insert_metadata;
 use serde_json::Value;
+use crate::errors::{AppError, Result};
 
-pub fn init_database_connection(db_path: &std::path::Path) -> Result<Mutex<Connection>, String> {
-    match Connection::open(db_path) {
-        Ok(conn) => Ok(Mutex::new(conn)),
-        Err(err) => {
-            let error_msg = format!("Error opening database: {:?}", err);
-            eprintln!("{}", error_msg);
-            Err(error_msg)
-        }
-    }
+pub fn init_database_connection(db_path: &std::path::Path) -> Result<Mutex<Connection>> {
+    let conn = Connection::open(db_path)?;
+    Ok(Mutex::new(conn))
 }
 
 pub fn get_file_mod_time_secs(file_path: &str) -> f64 {
@@ -32,69 +33,46 @@ pub fn get_file_mod_time_secs(file_path: &str) -> f64 {
     }
 }
 
-pub fn process_chunk(chunk: &[String], conn: &Mutex<Connection>) -> Result<(), String> {
-    let metadata = match run_exiftool(chunk) {
-        Ok(data) => data,
-        Err(err) => {
-            let error_msg = format!("Error running exiftool: {:?}", err);
-            eprintln!("{}", error_msg);
-            return Err(error_msg);
-        }
-    };
+pub fn process_chunk(chunk: &[String], conn: &Mutex<Connection>) -> Result<()> {
+    let metadata = run_exiftool(chunk)?;
     
-    let mut db_conn = match conn.lock() {
-        Ok(conn) => conn,
-        Err(err) => {
-            let error_msg = format!("Error acquiring database lock: {:?}", err);
-            eprintln!("{}", error_msg);
-            return Err(error_msg);
-        }
-    };
+    let mut db_conn = conn.lock().map_err(|_| AppError::Processing("Database mutex poisoned".to_string()))?;
 
-    let transaction = match db_conn.transaction() {
-        Ok(tx) => tx,
-        Err(err) => {
-            let error_msg = format!("Error starting transaction: {:?}", err);
-            eprintln!("{}", error_msg);
-            return Err(error_msg);
-        }
-    };
+    let transaction = db_conn.transaction()?;
 
     process_files_in_transaction(&transaction, chunk, &metadata)?;
 
-    if let Err(err) = transaction.commit() {
-        let error_msg = format!("Error committing transaction: {:?}", err);
-        eprintln!("{}", error_msg);
-        return Err(error_msg);
-    }
+    transaction.commit()?;
 
     Ok(())
 }
 
-pub fn process_files_in_transaction(transaction: &Transaction, files: &[String], metadata: &[Value]) -> Result<(), String> {
+pub fn process_files_in_transaction(transaction: &Transaction, files: &[String], metadata: &[Value]) -> Result<()> {
     for (file, data) in files.iter().zip(metadata.iter()) {
         let mod_time_secs = get_file_mod_time_secs(file);
 
-        if let Err(err) = insert_metadata(transaction, file, mod_time_secs, data) {
-            let error_msg = format!("Error inserting metadata: {:?}", err);
-            eprintln!("{}", error_msg);
-            return Err(error_msg);
-        }
+        insert_metadata(transaction, file, mod_time_secs, data)?;
     }
 
     Ok(())
 }
 
-pub fn process_files_in_parallel(files: Vec<String>, config: &Config) -> Result<(), String> {
+pub fn process_files_in_parallel(files: Vec<String>, config: &Config) -> Result<()> {
     if files.is_empty() {
         return Ok(());  
     }
 
     let conn = init_database_connection(&config.database_path)?;
 
-    files.par_chunks(50).for_each(|chunk| {
-        let _ = process_chunk(chunk, &conn);
-    });
+    // We collect errors to detect if any chunk failed, though ideally we might want to report all errors.
+    // For now, we terminate on the first error found during iteration if we were to loop sequentially, 
+    // but with par_chunks we need to decide how to aggregate.
+    // The previous implementation suppressed errors.
+    // We will use try_for_each to propagate the first error encountered.
+    
+    files.par_chunks(50).try_for_each(|chunk| {
+        process_chunk(chunk, &conn)
+    })?;
 
     Ok(())
 }

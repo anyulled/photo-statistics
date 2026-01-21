@@ -1,3 +1,8 @@
+//! Statistical analysis and reporting.
+//!
+//! This module generates various statistics from the metadata stored in the database,
+//! such as camera models, ISO usage, and more.
+
 use rusqlite::Connection;
 use std::collections::HashMap;
 
