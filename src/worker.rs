@@ -112,34 +112,44 @@ mod tests {
         (temp_dir, db_path)
     }
 
+    fn test_config() -> Config {
+        Config {
+            database_path: std::path::PathBuf::from("test.db"),
+            directory: ".".to_string(),
+        }
+    }
+
     #[test]
     fn test_worker_parallel_processing() {
-        let _result = process_files_in_parallel(vec!["test1.jpg".to_string(), "test2.jpg".to_string()], &Config::new());
-        assert!(_result.is_ok(), "Parallel processing should succeed");
+        let _result = process_files_in_parallel(vec!["test1.jpg".to_string(), "test2.jpg".to_string()], &test_config());
+        // Now that we propagate errors, this will fail because the files don't exist
+        assert!(_result.is_err(), "Parallel processing should fail for nonexistent files");
     }
 
     #[test]
     fn test_empty_files_array() {
-        let result = process_files_in_parallel(vec![], &Config::new());
+        let result = process_files_in_parallel(vec![], &test_config());
         assert!(result.is_ok(), "Processing empty files array should succeed");
     }
 
     #[test]
     fn test_nonexistent_files() {
-        let result = process_files_in_parallel(vec!["nonexistent1.jpg".to_string(), "nonexistent2.jpg".to_string()], &Config::new());
-        assert!(result.is_ok(), "Processing nonexistent files should not panic");
+        let result = process_files_in_parallel(vec!["nonexistent1.jpg".to_string(), "nonexistent2.jpg".to_string()], &test_config());
+        assert!(result.is_err(), "Processing nonexistent files should fail");
     }
 
     #[test]
     fn test_invalid_database_path() {
-        let mut config = Config::new();
-
         let invalid_db_path = tempdir()
             .unwrap()
             .path()
             .join("nonexistent_dir")
             .join("db.sqlite");
-        config.database_path = invalid_db_path;
+        
+        let config = Config {
+            database_path: invalid_db_path,
+            directory: ".".to_string(),
+        };
 
         let result = process_files_in_parallel(vec!["test1.jpg".to_string()], &config);
         assert!(result.is_err(), "Processing with invalid database path should fail");
