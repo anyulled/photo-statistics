@@ -134,7 +134,7 @@ mod tests {
     fn test_empty_statistics() {
         let conn = setup_test_db();
         create_tables_if_needed(&conn).unwrap();
-        generate_statistics(&conn);
+        let _ = generate_statistics(&conn);
     }
 
 }
