@@ -24,4 +24,4 @@ log = "0.4"
 tauri = { version = "2.9.5", features = [] }
 tauri-plugin-log = "2"
 photo-statistics = { path = ".." }
-rusqlite = { version = "0.31.0", features = ["bundled"] }
+rusqlite = { version = "0.38.0", features = ["bundled"] }
