@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "identifier": "com.tauri.dev",
   "build": {
-    "frontendDist": "../ui"
+    "beforeDevCommand": "cd ../ui && npm run dev",
+    "beforeBuildCommand": "cd ../ui && npm run build",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../ui/dist"
   },
   "app": {
     "withGlobalTauri": true,

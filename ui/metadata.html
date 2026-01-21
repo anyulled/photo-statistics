@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Photo Metadata Explorer</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00bdd6",
+                        "background-light": "#f7f7f7",
+                        "background-dark": "#121212",
+                        "surface-dark": "#1d1d1d",
+                        "border-dark": "rgba(255, 255, 255, 0.1)",
+                        "code-bg": "#0d1117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased selection:bg-primary/30">
+    <div
+        class="relative flex h-full min-h-screen w-full flex-col max-w-md mx-auto border-x border-border-dark overflow-hidden">
+        <!-- Sticky Header Section -->
+        <header
+            class="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-dark pb-2">
+            <!-- Top App Bar -->
+            <div class="flex flex-col gap-2 p-4 pb-0">
+                <div class="flex items-center h-12 justify-between">
+                    <button
+                        class="text-white flex size-10 shrink-0 items-center justify-center rounded hover:bg-white/5 transition-colors">
+                        <span class="material-symbols-outlined text-[24px]">menu</span>
+                    </button>
+                    <div class="flex items-center gap-4">
+                        <button class="flex items-center gap-1 group">
+                            <span
+                                class="text-primary text-xs font-mono font-bold uppercase tracking-wider shrink-0 group-hover:text-primary/80">Sort:
+                                Date</span>
+                            <span class="material-symbols-outlined text-primary text-[16px]">arrow_downward</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex justify-between items-baseline">
+                    <h1 class="text-white tracking-tight text-[28px] font-bold leading-tight">Library</h1>
+                    <span class="text-slate-400 font-mono text-xs">3,402 FILES</span>
+                </div>
+            </div>
+            <!-- Search Bar -->
+            <div class="px-4 py-3">
+                <label class="flex flex-col h-10 w-full group">
+                    <div
+                        class="flex w-full flex-1 items-stretch rounded bg-surface-dark border border-border-dark focus-within:border-primary/50 transition-colors h-full">
+                        <div class="text-slate-400 flex items-center justify-center pl-3 pr-2">
+                            <span class="material-symbols-outlined text-[20px]">search</span>
+                        </div>
+                        <input
+                            class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded bg-transparent text-white focus:outline-0 border-none h-full placeholder:text-slate-500 px-0 text-sm font-mono leading-normal"
+                            placeholder="Search filename, lens, or tag..." value="" />
+                        <div
+                            class="text-slate-400 flex items-center justify-center px-3 cursor-pointer hover:text-white">
+                            <span class="material-symbols-outlined text-[20px]">tune</span>
+                        </div>
+                    </div>
+                </label>
+            </div>
+            <!-- Chips -->
+            <div class="flex gap-2 px-4 overflow-x-auto no-scrollbar pb-1">
+                <button
+                    class="flex h-7 shrink-0 items-center justify-center gap-x-1.5 rounded border border-primary/30 bg-primary/10 pl-3 pr-3 active:scale-95 transition-transform">
+                    <span class="text-primary text-xs font-mono font-medium">ISO &gt; 1600</span>
+                    <span class="material-symbols-outlined text-primary text-[14px]">close</span>
+                </button>
+                <button
+                    class="flex h-7 shrink-0 items-center justify-center gap-x-2 rounded border border-border-dark bg-surface-dark hover:bg-white/5 pl-3 pr-3 active:scale-95 transition-transform">
+                    <span class="text-slate-300 text-xs font-mono font-medium">50mm only</span>
+                </button>
+                <button
+                    class="flex h-7 shrink-0 items-center justify-center gap-x-2 rounded border border-border-dark bg-surface-dark hover:bg-white/5 pl-3 pr-3 active:scale-95 transition-transform">
+                    <span class="text-slate-300 text-xs font-mono font-medium">f/2.8</span>
+                </button>
+                <button
+                    class="flex h-7 shrink-0 items-center justify-center gap-x-2 rounded border border-border-dark bg-surface-dark hover:bg-white/5 pl-3 pr-3 active:scale-95 transition-transform">
+                    <span class="text-slate-300 text-xs font-mono font-medium">RAW</span>
+                </button>
+                <button
+                    class="flex h-7 shrink-0 items-center justify-center gap-x-2 rounded border border-dashed border-slate-600 bg-transparent hover:bg-white/5 pl-3 pr-3 active:scale-95 transition-transform">
+                    <span class="text-slate-500 text-xs font-mono font-medium">+ ADD</span>
+                </button>
+            </div>
+            <!-- Column Headers -->
+            <div class="flex w-full mt-2 px-4 border-b border-border-dark/50 pb-2">
+                <!-- Frozen Column Header -->
+                <div
+                    class="w-[140px] shrink-0 text-slate-500 text-[10px] font-bold uppercase tracking-wider font-display border-r border-border-dark/30 mr-4">
+                    Filename</div>
+                <!-- Scrollable Column Headers Container -->
+                <div class="flex-1 overflow-hidden relative">
+                    <div class="flex gap-6 min-w-full">
+                        <div
+                            class="w-[50px] shrink-0 text-slate-500 text-[10px] font-bold uppercase tracking-wider text-right">
+                            ISO</div>
+                        <div
+                            class="w-[60px] shrink-0 text-slate-500 text-[10px] font-bold uppercase tracking-wider text-right">
+                            Aperture</div>
+                        <div
+                            class="w-[70px] shrink-0 text-slate-500 text-[10px] font-bold uppercase tracking-wider text-right">
+                            Shutter</div>
+                        <div
+                            class="w-[60px] shrink-0 text-slate-500 text-[10px] font-bold uppercase tracking-wider text-right">
+                            Focal</div>
+                        <div class="w-[80px] shrink-0 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                            Lens</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Main Data Table (List View) -->
+        <main class="flex-1 overflow-y-auto no-scrollbar relative z-0 pb-24">
+            <!-- Row 1 -->
+            <div
+                class="group flex items-center h-12 border-b border-border-dark hover:bg-surface-dark active:bg-surface-dark px-4 transition-colors cursor-pointer relative">
+                <!-- Selection Indicator -->
+                <div
+                    class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                </div>
+                <!-- Frozen Column: Filename -->
+                <div class="w-[140px] shrink-0 flex items-center gap-2 border-r border-border-dark/30 mr-4 z-10">
+                    <div class="size-1.5 rounded-full bg-purple-500 shrink-0" title="RAW"></div>
+                    <span class="text-white text-xs font-mono truncate">IMG_9021.ARW</span>
+                </div>
+                <!-- Scrollable Data -->
+                <div class="flex-1 overflow-x-auto no-scrollbar flex items-center gap-6">
+                    <div class="w-[50px] shrink-0 text-right"><span class="text-primary font-mono text-xs">400</span>
+                    </div>
+                    <div class="w-[60px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">f/1.8</span></div>
+                    <div class="w-[70px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">1/250s</span></div>
+                    <div class="w-[60px] shrink-0 text-right"><span class="text-slate-300 font-mono text-xs">50mm</span>
+                    </div>
+                    <div class="w-[80px] shrink-0"><span class="text-slate-500 font-mono text-[10px] truncate">FE 50mm
+                            F1.2 GM</span></div>
+                </div>
+            </div>
+            <!-- Row 2 -->
+            <div
+                class="group flex items-center h-12 border-b border-border-dark hover:bg-surface-dark active:bg-surface-dark px-4 transition-colors cursor-pointer relative">
+                <div
+                    class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                </div>
+                <div class="w-[140px] shrink-0 flex items-center gap-2 border-r border-border-dark/30 mr-4 z-10">
+                    <div class="size-1.5 rounded-full bg-blue-500 shrink-0" title="JPG"></div>
+                    <span class="text-white text-xs font-mono truncate">IMG_9022.JPG</span>
+                </div>
+                <div class="flex-1 overflow-x-auto no-scrollbar flex items-center gap-6">
+                    <div class="w-[50px] shrink-0 text-right"><span class="text-primary font-mono text-xs">100</span>
+                    </div>
+                    <div class="w-[60px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">f/8.0</span></div>
+                    <div class="w-[70px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">1/60s</span></div>
+                    <div class="w-[60px] shrink-0 text-right"><span class="text-slate-300 font-mono text-xs">35mm</span>
+                    </div>
+                    <div class="w-[80px] shrink-0"><span class="text-slate-500 font-mono text-[10px] truncate">FE 35mm
+                            F1.4 GM</span></div>
+                </div>
+            </div>
+            <!-- Row 3 -->
+            <div
+                class="group flex items-center h-12 border-b border-border-dark hover:bg-surface-dark active:bg-surface-dark px-4 transition-colors cursor-pointer relative bg-surface-dark/30">
+                <div class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary opacity-100 transition-opacity"></div>
+                <div class="w-[140px] shrink-0 flex items-center gap-2 border-r border-border-dark/30 mr-4 z-10">
+                    <div class="size-1.5 rounded-full bg-purple-500 shrink-0" title="RAW"></div>
+                    <span class="text-white text-xs font-mono truncate">IMG_9023.ARW</span>
+                </div>
+                <div class="flex-1 overflow-x-auto no-scrollbar flex items-center gap-6">
+                    <div class="w-[50px] shrink-0 text-right"><span class="text-red-400 font-mono text-xs">3200</span>
+                    </div>
+                    <div class="w-[60px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">f/2.8</span></div>
+                    <div class="w-[70px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">1/4000s</span></div>
+                    <div class="w-[60px] shrink-0 text-right"><span class="text-slate-300 font-mono text-xs">85mm</span>
+                    </div>
+                    <div class="w-[80px] shrink-0"><span class="text-slate-500 font-mono text-[10px] truncate">FE 85mm
+                            F1.4 GM</span></div>
+                </div>
+            </div>
+            <!-- Row 4 -->
+            <div
+                class="group flex items-center h-12 border-b border-border-dark hover:bg-surface-dark active:bg-surface-dark px-4 transition-colors cursor-pointer relative">
+                <div
+                    class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                </div>
+                <div class="w-[140px] shrink-0 flex items-center gap-2 border-r border-border-dark/30 mr-4 z-10">
+                    <div class="size-1.5 rounded-full bg-purple-500 shrink-0" title="RAW"></div>
+                    <span class="text-white text-xs font-mono truncate">IMG_9024.ARW</span>
+                </div>
+                <div class="flex-1 overflow-x-auto no-scrollbar flex items-center gap-6">
+                    <div class="w-[50px] shrink-0 text-right"><span class="text-primary font-mono text-xs">400</span>
+                    </div>
+                    <div class="w-[60px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">f/4.0</span></div>
+                    <div class="w-[70px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">1/125s</span></div>
+                    <div class="w-[60px] shrink-0 text-right"><span class="text-slate-300 font-mono text-xs">24mm</span>
+                    </div>
+                    <div class="w-[80px] shrink-0"><span class="text-slate-500 font-mono text-[10px] truncate">FE 24mm
+                            F1.4 GM</span></div>
+                </div>
+            </div>
+            <!-- Row 5 -->
+            <div
+                class="group flex items-center h-12 border-b border-border-dark hover:bg-surface-dark active:bg-surface-dark px-4 transition-colors cursor-pointer relative">
+                <div
+                    class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                </div>
+                <div class="w-[140px] shrink-0 flex items-center gap-2 border-r border-border-dark/30 mr-4 z-10">
+                    <div class="size-1.5 rounded-full bg-purple-500 shrink-0" title="RAW"></div>
+                    <span class="text-white text-xs font-mono truncate">IMG_9025.ARW</span>
+                </div>
+                <div class="flex-1 overflow-x-auto no-scrollbar flex items-center gap-6">
+                    <div class="w-[50px] shrink-0 text-right"><span class="text-primary font-mono text-xs">160</span>
+                    </div>
+                    <div class="w-[60px] shrink-0 text-right"><span class="text-slate-300 font-mono text-xs">f/11</span>
+                    </div>
+                    <div class="w-[70px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">1/50s</span></div>
+                    <div class="w-[60px] shrink-0 text-right"><span class="text-slate-300 font-mono text-xs">16mm</span>
+                    </div>
+                    <div class="w-[80px] shrink-0"><span class="text-slate-500 font-mono text-[10px] truncate">FE
+                            16-35mm F2.8</span></div>
+                </div>
+            </div>
+            <!-- Row 6 -->
+            <div
+                class="group flex items-center h-12 border-b border-border-dark hover:bg-surface-dark active:bg-surface-dark px-4 transition-colors cursor-pointer relative">
+                <div
+                    class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                </div>
+                <div class="w-[140px] shrink-0 flex items-center gap-2 border-r border-border-dark/30 mr-4 z-10">
+                    <div class="size-1.5 rounded-full bg-blue-500 shrink-0" title="JPG"></div>
+                    <span class="text-white text-xs font-mono truncate">IMG_9026.JPG</span>
+                </div>
+                <div class="flex-1 overflow-x-auto no-scrollbar flex items-center gap-6">
+                    <div class="w-[50px] shrink-0 text-right"><span class="text-red-400 font-mono text-xs">6400</span>
+                    </div>
+                    <div class="w-[60px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">f/2.0</span></div>
+                    <div class="w-[70px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">1/8000s</span></div>
+                    <div class="w-[60px] shrink-0 text-right"><span class="text-slate-300 font-mono text-xs">50mm</span>
+                    </div>
+                    <div class="w-[80px] shrink-0"><span class="text-slate-500 font-mono text-[10px] truncate">FE 50mm
+                            F1.2 GM</span></div>
+                </div>
+            </div>
+            <!-- Row 7 -->
+            <div
+                class="group flex items-center h-12 border-b border-border-dark hover:bg-surface-dark active:bg-surface-dark px-4 transition-colors cursor-pointer relative">
+                <div
+                    class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                </div>
+                <div class="w-[140px] shrink-0 flex items-center gap-2 border-r border-border-dark/30 mr-4 z-10">
+                    <div class="size-1.5 rounded-full bg-purple-500 shrink-0" title="RAW"></div>
+                    <span class="text-white text-xs font-mono truncate">IMG_9027.ARW</span>
+                </div>
+                <div class="flex-1 overflow-x-auto no-scrollbar flex items-center gap-6">
+                    <div class="w-[50px] shrink-0 text-right"><span class="text-primary font-mono text-xs">800</span>
+                    </div>
+                    <div class="w-[60px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">f/2.8</span></div>
+                    <div class="w-[70px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">1/60s</span></div>
+                    <div class="w-[60px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">200mm</span></div>
+                    <div class="w-[80px] shrink-0"><span class="text-slate-500 font-mono text-[10px] truncate">FE
+                            70-200mm GM</span></div>
+                </div>
+            </div>
+            <!-- Row 8 -->
+            <div
+                class="group flex items-center h-12 border-b border-border-dark hover:bg-surface-dark active:bg-surface-dark px-4 transition-colors cursor-pointer relative">
+                <div
+                    class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                </div>
+                <div class="w-[140px] shrink-0 flex items-center gap-2 border-r border-border-dark/30 mr-4 z-10">
+                    <div class="size-1.5 rounded-full bg-purple-500 shrink-0" title="RAW"></div>
+                    <span class="text-white text-xs font-mono truncate">IMG_9028.ARW</span>
+                </div>
+                <div class="flex-1 overflow-x-auto no-scrollbar flex items-center gap-6">
+                    <div class="w-[50px] shrink-0 text-right"><span class="text-primary font-mono text-xs">400</span>
+                    </div>
+                    <div class="w-[60px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">f/5.6</span></div>
+                    <div class="w-[70px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">1/200s</span></div>
+                    <div class="w-[60px] shrink-0 text-right"><span
+                            class="text-slate-300 font-mono text-xs">105mm</span></div>
+                    <div class="w-[80px] shrink-0"><span class="text-slate-500 font-mono text-[10px] truncate">FE 105mm
+                            Macro</span></div>
+                </div>
+            </div>
+            <!-- Loader / End of List -->
+            <div class="h-20 flex items-center justify-center gap-2 opacity-50">
+                <div class="size-1.5 rounded-full bg-slate-600 animate-pulse"></div>
+                <div class="size-1.5 rounded-full bg-slate-600 animate-pulse delay-75"></div>
+                <div class="size-1.5 rounded-full bg-slate-600 animate-pulse delay-150"></div>
+            </div>
+        </main>
+        <!-- Bottom Sheet / Details Panel (Slide Over Mimic) -->
+        <div
+            class="absolute bottom-0 left-0 right-0 z-40 flex flex-col max-h-[45vh] bg-surface-dark border-t border-primary shadow-2xl shadow-black rounded-t-xl transform translate-y-0 transition-transform">
+            <div class="w-12 h-1 bg-slate-600 rounded-full mx-auto my-3 shrink-0"></div>
+            <div class="flex items-center justify-between px-4 pb-2 shrink-0 border-b border-border-dark">
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold text-primary uppercase tracking-wider">Metadata Inspector</span>
+                    <span class="text-white font-mono text-sm">IMG_9023.ARW</span>
+                </div>
+                <div class="flex gap-2">
+                    <button class="text-slate-400 hover:text-white"><span
+                            class="material-symbols-outlined text-[18px]">content_copy</span></button>
+                    <button class="text-slate-400 hover:text-white"><span
+                            class="material-symbols-outlined text-[18px]">share</span></button>
+                    <button class="text-slate-400 hover:text-white"><span
+                            class="material-symbols-outlined text-[18px]">close</span></button>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 bg-code-bg font-mono text-xs leading-relaxed">
+                <div class="text-slate-500 select-none mb-1">// EXIF Data Dump</div>
+                <div class="text-yellow-500"><span class="text-purple-400">const</span> <span
+                        class="text-blue-400">metadata</span> = {</div>
+                <div class="pl-4">
+                    <span class="text-blue-300">"Make"</span>: <span class="text-green-400">"Sony"</span>,
+                </div>
+                <div class="pl-4">
+                    <span class="text-blue-300">"Model"</span>: <span class="text-green-400">"ILCE-7M4"</span>,
+                </div>
+                <div class="pl-4">
+                    <span class="text-blue-300">"LensModel"</span>: <span class="text-green-400">"FE 85mm F1.4
+                        GM"</span>,
+                </div>
+                <div class="pl-4 flex gap-4">
+                    <span><span class="text-blue-300">"ISO"</span>: <span class="text-orange-400">3200</span>,</span>
+                    <span class="text-slate-600">// High noise warning</span>
+                </div>
+                <div class="pl-4">
+                    <span class="text-blue-300">"FNumber"</span>: <span class="text-orange-400">2.8</span>,
+                </div>
+                <div class="pl-4">
+                    <span class="text-blue-300">"ExposureTime"</span>: <span class="text-green-400">"1/4000"</span>,
+                </div>
+                <div class="pl-4">
+                    <span class="text-blue-300">"DateTimeOriginal"</span>: <span class="text-green-400">"2023:10:24
+                        14:32:01"</span>,
+                </div>
+                <div class="pl-4">
+                    <span class="text-blue-300">"MeteringMode"</span>: <span class="text-green-400">"Pattern"</span>,
+                </div>
+                <div class="pl-4">
+                    <span class="text-blue-300">"Flash"</span>: <span class="text-orange-400">false</span>,
+                </div>
+                <div class="pl-4">
+                    <span class="text-blue-300">"Software"</span>: <span class="text-green-400">"ILCE-7M4 v2.00"</span>
+                </div>
+                <div class="text-yellow-500">}</div>
+            </div>
+        </div>
+        <!-- Bottom Navigation Bar -->
+        <nav
+            class="absolute bottom-0 left-0 right-0 z-50 bg-background-dark border-t border-border-dark h-[84px] px-6 pb-5 flex items-center justify-between">
+            <button class="flex flex-col items-center gap-1 text-primary">
+                <span class="material-symbols-outlined text-[24px]">dataset</span>
+                <span class="text-[10px] font-medium">Library</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-300">
+                <span class="material-symbols-outlined text-[24px]">bar_chart</span>
+                <span class="text-[10px] font-medium">Analytics</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-300">
+                <span class="material-symbols-outlined text-[24px]">camera</span>
+                <span class="text-[10px] font-medium">Gear</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-300">
+                <span class="material-symbols-outlined text-[24px]">settings</span>
+                <span class="text-[10px] font-medium">Settings</span>
+            </button>
+        </nav>
+        <!-- Overlay for backdrop dimming when sheet is open -->
+        <div class="absolute inset-0 bg-black/60 z-30 pointer-events-none"></div>
+    </div>
+</body>
+
+</html>
